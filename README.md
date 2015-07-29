@@ -8,8 +8,8 @@
 The purpose of this project is to provide a simple Benchmarker.
 
 The Benchmarker is divided in 3 Part :
-* The Benchmarker Core (contains the main algorithm)
-* The profiling Core (the canvas for building profiler)
-* The Benchmarking strategy (the canvas to define what to benchmark)
+* The Benchmarker Core (contains the main algorithm) => Benchmarker class (Base class, Method Chaining)
+* The Profiling Core (the canvas for building profiler) => AProfiler (Abstract class, Decorator, Template Method)
+* The Benchmarking strategy (the canvas to define what to benchmark) => AbstractBenchmarkStrategy (Abstract class)
 
 The documentation is in the doc folder
