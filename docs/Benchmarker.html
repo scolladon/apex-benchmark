@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>This is the Benchmarker class</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+    <ul class="sections">
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <h1 id="this-is-the-benchmarker-class">This is the Benchmarker class</h1>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <h2 id="this-class-purpose-is-to-be-a-helper-to-benchmark-anything">This class purpose is to be a helper to benchmark anything</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>This class allow a developer to quickly define something to benchmark
+With the profiler he wants to define
+Benchmarker class is globale without sharing. This is to the developer using
+it to handle the data visibility
+It has been done for the project [AXA Creditor][<a href="https://gitlab.com/colladonsebastien/webcreditor.git">https://gitlab.com/colladonsebastien/webcreditor.git</a>]</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <h3 id="benchmarker-class-definition">Benchmarker class definition</h3>
+<blockquote>
+<p>The default Threashold is here to handle the maximum threashold available for
+a user context. It can be overriden to specify a lower context for specific
+purpose. </p>
+</blockquote>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>global without sharing <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Benchmarker</span> </span>{
+
+	<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> decimal DEFAULT_THREASHOLD = <span class="hljs-number">0.95</span>;
+
+	<span class="hljs-keyword">private</span> decimal threashold;
+
+	<span class="hljs-keyword">public</span> map&lt;integer,list&lt;ProfilingResult&gt;&gt; thePRlist {get;<span class="hljs-keyword">private</span> set;}
+	<span class="hljs-keyword">public</span> AbstractBenchmarkStrategy theBS;
+	<span class="hljs-keyword">public</span> list&lt;AProfiler&gt; thePlist;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <h3 id="benchmarker-constructors">Benchmarker constructors</h3>
+<p>Two constructor :</p>
+<ol>
+<li>Constructor per default, use the default threashold</li>
+<li>Constructor allowing a specific threashold. To the user responsability
+The init method instanciate the result list. </li>
+</ol>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Benchmarker</span><span class="hljs-params">()</span> </span>{
+		<span class="hljs-keyword">this</span>.threashold = Benchmarker.DEFAULT_THREASHOLD;
+		<span class="hljs-keyword">this</span>.init();
+	}
+
+	<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Benchmarker</span><span class="hljs-params">(decimal threashold)</span> </span>{
+		<span class="hljs-keyword">this</span>.threashold = threashold == <span class="hljs-keyword">null</span> ? Benchmarker.DEFAULT_THREASHOLD : threashold;
+		<span class="hljs-keyword">this</span>.init();
+	}
+
+	<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">init</span><span class="hljs-params">()</span></span>{
+		<span class="hljs-keyword">this</span>.thePRlist = <span class="hljs-keyword">new</span> map&lt;integer,list&lt;ProfilingResult&gt;&gt;();	
+	}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <h3 id="benchmarker-setter">Benchmarker Setter</h3>
+<p>Benchmarker requires :</p>
+<ol>
+<li>A list of profiler</li>
+<li>A Benchmarker Strategy to perform</li>
+</ol>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-function"><span class="hljs-keyword">public</span> Benchmarker <span class="hljs-title">addProfiler</span><span class="hljs-params">(AProfiler aP)</span> </span>{
+		<span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.thePlist == <span class="hljs-keyword">null</span>) {
+			<span class="hljs-keyword">this</span>.thePlist = <span class="hljs-keyword">new</span> list&lt;AProfiler&gt;();
+		}
+		<span class="hljs-keyword">this</span>.thePlist.add(aP);
+		<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>;
+	}
+
+	<span class="hljs-function"><span class="hljs-keyword">public</span> Benchmarker <span class="hljs-title">setBenchmarkStrategy</span><span class="hljs-params">(AbstractBenchmarkStrategy aBS)</span> </span>{		
+		<span class="hljs-keyword">this</span>.theBS = aBS;
+		<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>;
+	}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <h3 id="benchmarker-template-method">Benchmarker Template Method</h3>
+<p>This is the main algorythm for this class
+Basically it just iterate while the threashold is 
+not reached (against CPU Time consuption)
+This method will test incrementally to Apply the Benchmarker Stragegy
+Using the profiler before and after (in the opposite order) to get the metrics
+Throw BenchmarkerException</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">DoBenchmark</span><span class="hljs-params">()</span> </span>{
+		<span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.theBS == <span class="hljs-keyword">null</span>) {
+			<span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> BenchmarkException(<span class="hljs-string">'No Benchmark Strategy set'</span>);
+		}
+		<span class="hljs-keyword">for</span>(integer i = <span class="hljs-number">0</span> ; 
+			Limits.getCpuTime()/Limits.getLimitCpuTime() &lt; <span class="hljs-keyword">this</span>.threashold; 
+			++i) {
+			list&lt;ProfilingResult&gt; aPRl = <span class="hljs-keyword">new</span> list&lt;ProfilingResult&gt;();
+			<span class="hljs-keyword">for</span>(AProfiler aP : <span class="hljs-keyword">this</span>.thePlist) {
+				aP.DoPreAction();
+			}
+			<span class="hljs-keyword">this</span>.theBS.DoBenchMark(i);
+			<span class="hljs-keyword">for</span>(integer k =  <span class="hljs-keyword">this</span>.thePlist.size() - <span class="hljs-number">1</span> ; k &gt;= <span class="hljs-number">0</span> ; --k ) {
+				system.debug(<span class="hljs-string">'#=&gt; i k '</span> + i  + <span class="hljs-string">' '</span> + k);
+				AProfiler aP = <span class="hljs-keyword">this</span>.thePlist[k];
+				aP.DoPostAction();
+				aPRl.add(aP.getProfilingResult());
+			}
+			<span class="hljs-keyword">this</span>.thePRlist.put(i,aPRl);
+		}
+	}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <h2 id="this-class-purpose-is-to-be-store-the-bencharking-results">This class purpose is to be store the Bencharking results</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ProfilingResult</span> </span>{
+		<span class="hljs-keyword">public</span> <span class="hljs-keyword">long</span> metric {get;<span class="hljs-keyword">private</span> set;}
+		<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ProfilingResult</span><span class="hljs-params">(<span class="hljs-keyword">long</span> metric)</span> </span>{
+			<span class="hljs-keyword">this</span>.metric = metric;
+		}
+	}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <h2 id="this-interface-purpose-is-to-be-define-the-pre-decorator-function">This interface purpose is to be define the pre Decorator function</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">IPreDecorator</span> </span>{
+		<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">DoPreAction</span><span class="hljs-params">()</span></span>;
+	}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <h2 id="this-interface-purpose-is-to-be-define-the-post-decorator-function">This interface purpose is to be define the post Decorator function</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">IPostDecorator</span> </span>{
+		<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">DoPostAction</span><span class="hljs-params">()</span></span>;
+	}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <h2 id="this-class-define-the-super-type-for-profiler">This Class define the super type for profiler</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-17">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <h3 id="aprofiler-class">AProfiler class</h3>
+<p>The constructor is private so it is not possible to instanciate it
+It implement IPreDecorator and IPostDecorator
+The only method to override is the GetMetrics, the class will automatically
+fetch the metrics by substracting the postdecorator result with the predecorator result
+Throw ProfilerStartMetricException ProfilerEndMetricException</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AProfiler</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">IPreDecorator</span>, <span class="hljs-title">IPostDecorator</span> </span>{
+		<span class="hljs-keyword">private</span> <span class="hljs-keyword">long</span> metricStart;
+		<span class="hljs-keyword">private</span> <span class="hljs-keyword">long</span> metricEnd;
+
+		<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-title">AProfiler</span><span class="hljs-params">()</span></span>{}
+
+		<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">abstract</span> <span class="hljs-keyword">long</span> <span class="hljs-title">GetMetric</span><span class="hljs-params">()</span></span>;
+		<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">DoPreAction</span><span class="hljs-params">()</span> </span>{
+			<span class="hljs-keyword">this</span>.metricStart = <span class="hljs-keyword">this</span>.GetMetric();
+		}
+		<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">DoPostAction</span><span class="hljs-params">()</span> </span>{
+			<span class="hljs-keyword">this</span>.metricEnd = <span class="hljs-keyword">this</span>.GetMetric();
+		}
+		<span class="hljs-function"><span class="hljs-keyword">public</span> ProfilingResult <span class="hljs-title">getProfilingResult</span><span class="hljs-params">()</span> </span>{
+			<span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.metricStart == <span class="hljs-keyword">null</span>) {
+				<span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> ProfilerStartMetricException(<span class="hljs-string">'No Start Metric'</span>);
+			}
+			<span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.metricEnd == <span class="hljs-keyword">null</span>) {
+				<span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> ProfilerEndMetricException(<span class="hljs-string">'No End Metric'</span>);
+			}
+			system.debug(<span class="hljs-string">'#=&gt; AProfiler.getProfilingResult '</span> + <span class="hljs-keyword">this</span>.metricEnd + <span class="hljs-string">' '</span> + <span class="hljs-keyword">this</span>.metricStart);
+			<span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> ProfilingResult(<span class="hljs-keyword">this</span>.metricEnd - <span class="hljs-keyword">this</span>.metricStart);
+		}
+	}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-18">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <h3 id="concrete-instantiation-for-aprofiler-monitoring-the-time">Concrete Instantiation for AProfiler, monitoring the time</h3>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">private</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">TimeProfiler</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AProfiler</span> </span>{		
+		<span class="hljs-function"><span class="hljs-keyword">private</span> override <span class="hljs-keyword">long</span> <span class="hljs-title">GetMetric</span><span class="hljs-params">()</span></span>{
+			<span class="hljs-keyword">long</span> m = DateTime.now().gettime();
+			system.debug(<span class="hljs-string">'#=&gt; TimeProfiler.GetMetric '</span> + m);
+
+			<span class="hljs-keyword">return</span> m;
+		}
+	}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-19">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <h3 id="concrete-instantiation-for-aprofiler-monitoring-the-heap">Concrete Instantiation for AProfiler, monitoring the heap</h3>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">private</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">HeapSizeProfiler</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AProfiler</span> </span>{
+		<span class="hljs-function"><span class="hljs-keyword">private</span> override <span class="hljs-keyword">long</span> <span class="hljs-title">GetMetric</span><span class="hljs-params">()</span></span>{
+			<span class="hljs-keyword">long</span> m = Limits.getHeapSize();
+			system.debug(<span class="hljs-string">'#=&gt; HeapSizeProfiler.GetMetric '</span> + m);
+			<span class="hljs-keyword">return</span> m;
+		}
+	}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-20">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-20">&#182;</a>
+              </div>
+              <h3 id="profiler-factory-hiding-the-profiler-creation">Profiler Factory hiding the Profiler Creation</h3>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ProfilerFactory</span> </span>{
+		<span class="hljs-function"><span class="hljs-keyword">public</span> AProfiler <span class="hljs-title">getTimeProfiler</span><span class="hljs-params">()</span></span>{
+			<span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> TimeProfiler();
+		}
+
+		<span class="hljs-function"><span class="hljs-keyword">public</span> AProfiler <span class="hljs-title">getHeapSizeProfiler</span><span class="hljs-params">()</span></span>{
+			<span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> HeapSizeProfiler();
+		}
+	}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-21">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-21">&#182;</a>
+              </div>
+              <h2 id="this-class-define-the-super-type-for-benchmarkstrategy">This Class define the super type for BenchmarkStrategy</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-22">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-22">&#182;</a>
+              </div>
+              <h3 id="abstractbenchmarkstrategy-class">AbstractBenchmarkStrategy class</h3>
+<p>This class only define one method to be overriden
+The DoBecnhmark method, which purpose is to do an atomic task to Benchmark</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AbstractBenchmarkStrategy</span> </span>{
+		<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-keyword">void</span> <span class="hljs-title">DoBenchMark</span><span class="hljs-params">(integer iteration)</span></span>;
+	}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-23">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-23">&#182;</a>
+              </div>
+              <h3 id="concrete-instantiation-for-abstractbenchmarkstrategy-concat-string">Concrete Instantiation for AbstractBenchmarkStrategy, Concat string</h3>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">private</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">StringConcatBenchmarkStrategy</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AbstractBenchmarkStrategy</span> </span>{
+		<span class="hljs-function"><span class="hljs-keyword">public</span> override <span class="hljs-keyword">void</span> <span class="hljs-title">DoBenchmark</span><span class="hljs-params">(integer iteration)</span></span>{
+			string s = <span class="hljs-string">''</span>;
+			<span class="hljs-keyword">for</span>(integer i = <span class="hljs-number">0</span> ; i &lt; iteration ; ++i) {
+				s += <span class="hljs-string">'s'</span>;
+			}
+		}
+	}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-24">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-24">&#182;</a>
+              </div>
+              <h3 id="concrete-instantiation-for-abstractbenchmarkstrategy-join-string">Concrete Instantiation for AbstractBenchmarkStrategy, Join string</h3>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">private</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">StringJoinBenchmarkStrategy</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AbstractBenchmarkStrategy</span> </span>{
+		<span class="hljs-function"><span class="hljs-keyword">public</span> override <span class="hljs-keyword">void</span> <span class="hljs-title">DoBenchmark</span><span class="hljs-params">(integer iteration)</span></span>{
+			list&lt;string&gt; ls = <span class="hljs-keyword">new</span> list&lt;string&gt;();
+			<span class="hljs-keyword">for</span>(integer i = <span class="hljs-number">0</span> ; i &lt; iteration ; ++i) {
+				ls.add(<span class="hljs-string">'s'</span>);
+			}
+			string.join(ls,<span class="hljs-string">''</span>);
+		}
+	}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-25">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-25">&#182;</a>
+              </div>
+              <h3 id="benchmarkstrategy-factory-hiding-the-banchmarkerstrategy-creation">BenchmarkStrategy Factory hiding the BanchmarkerStrategy Creation</h3>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">BenchmarkStrategyFactory</span> </span>{
+		<span class="hljs-function"><span class="hljs-keyword">public</span> AbstractBenchmarkStrategy <span class="hljs-title">getStringConcatBenchmarkStrategy</span><span class="hljs-params">()</span></span>{
+			<span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> StringConcatBenchmarkStrategy();
+		}
+
+		<span class="hljs-function"><span class="hljs-keyword">public</span> AbstractBenchmarkStrategy <span class="hljs-title">getStringJoinBenchmarkStrategy</span><span class="hljs-params">()</span></span>{
+			<span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> StringJoinBenchmarkStrategy();
+		}
+	}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-26">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-26">&#182;</a>
+              </div>
+              <h2 id="specific-exception-type-for-the-benchmarker">Specific Exception type for the Benchmarker</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-27">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-27">&#182;</a>
+              </div>
+              <ol>
+<li>BenchmarkerException =&gt; Thrown when a Benchmarker is executed without Benchmarker Strategy</li>
+<li>ProfilerStartMetricException =&gt; Thrown when no start Metric retrieved</li>
+<li>ProfilerEndMetricException =&gt; Thrown when no end Metric retrieved</li>
+</ol>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">BenchmarkException</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Exception</span> </span>{}
+	<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ProfilerStartMetricException</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Exception</span> </span>{}
+	<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ProfilerEndMetricException</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Exception</span> </span>{}
+}</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>
