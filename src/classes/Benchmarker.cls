@@ -14,7 +14,7 @@
 //> The default Threashold is here to handle the maximum threashold available for
 //> a user context. It can be overriden to specify a lower context for specific
 //> purpose. 
-global without sharing class Benchmarker {
+public without sharing class Benchmarker {
 
 	private static final decimal DEFAULT_THREASHOLD = 0.95;
 
@@ -67,7 +67,7 @@ global without sharing class Benchmarker {
 	// This method will test incrementally to Apply the Benchmarker Stragegy
 	// Using the profiler before and after (in the opposite order) to get the metrics
 	// Throw BenchmarkerException
-	public void DoBenchmark() {
+	public void doBenchmark() {
 		if(this.theBS == null) {
 			throw new BenchmarkException('No Benchmark Strategy set');
 		}
@@ -76,13 +76,13 @@ global without sharing class Benchmarker {
 			++i) {
 			list<ProfilingResult> aPRl = new list<ProfilingResult>();
 			for(AProfiler aP : this.thePlist) {
-				aP.DoPreAction();
+				aP.doPreAction();
 			}
-			this.theBS.DoBenchMark(i);
+			this.theBS.doBenchMark(i);
 			for(integer k =  this.thePlist.size() - 1 ; k >= 0 ; --k ) {
 				system.debug('#=> i k ' + i  + ' ' + k);
 				AProfiler aP = this.thePlist[k];
-				aP.DoPostAction();
+				aP.doPostAction();
 				aPRl.add(aP.getProfilingResult());
 			}
 			this.thePRlist.put(i,aPRl);
@@ -101,13 +101,13 @@ global without sharing class Benchmarker {
 	//This interface purpose is to be define the pre Decorator function
 	//---------------------
 	public interface IPreDecorator {
-		void DoPreAction();
+		void doPreAction();
 	}
 
 	//This interface purpose is to be define the post Decorator function
 	//---------------------
 	public interface IPostDecorator {
-		void DoPostAction();
+		void doPostAction();
 	}
 
 	//This Class define the super type for profiler
@@ -124,11 +124,11 @@ global without sharing class Benchmarker {
 
 		private AProfiler(){}
 
-		private abstract long GetMetric();
-		public void DoPreAction() {
+		private abstract long getMetric();
+		public void doPreAction() {
 			this.metricStart = this.GetMetric();
 		}
-		public void DoPostAction() {
+		public void doPostAction() {
 			this.metricEnd = this.GetMetric();
 		}
 		public ProfilingResult getProfilingResult() {
@@ -145,7 +145,7 @@ global without sharing class Benchmarker {
 
 	//### Concrete Instantiation for AProfiler, monitoring the time
 	private class TimeProfiler extends AProfiler {		
-		private override long GetMetric(){
+		private override long getMetric(){
 			long m = DateTime.now().gettime();
 			system.debug('#=> TimeProfiler.GetMetric ' + m);
 
@@ -155,7 +155,7 @@ global without sharing class Benchmarker {
 
 	//### Concrete Instantiation for AProfiler, monitoring the heap
 	private class HeapSizeProfiler extends AProfiler {
-		private override long GetMetric(){
+		private override long getMetric(){
 			long m = Limits.getHeapSize();
 			system.debug('#=> HeapSizeProfiler.GetMetric ' + m);
 			return m;
@@ -179,12 +179,12 @@ global without sharing class Benchmarker {
 	// This class only define one method to be overriden
 	// The DoBecnhmark method, which purpose is to do an atomic task to Benchmark
 	public abstract class AbstractBenchmarkStrategy {
-		public abstract void DoBenchMark(integer iteration);
+		public abstract void doBenchMark(integer iteration);
 	}
 
 	//### Concrete Instantiation for AbstractBenchmarkStrategy, Concat string
 	private class StringConcatBenchmarkStrategy extends AbstractBenchmarkStrategy {
-		public override void DoBenchmark(integer iteration){
+		public override void doBenchmark(integer iteration){
 			string s = '';
 			for(integer i = 0 ; i < iteration ; ++i) {
 				s += 's';
@@ -194,7 +194,7 @@ global without sharing class Benchmarker {
 
 	//### Concrete Instantiation for AbstractBenchmarkStrategy, Join string
 	private class StringJoinBenchmarkStrategy extends AbstractBenchmarkStrategy {
-		public override void DoBenchmark(integer iteration){
+		public override void doBenchmark(integer iteration){
 			list<string> ls = new list<string>();
 			for(integer i = 0 ; i < iteration ; ++i) {
 				ls.add('s');
