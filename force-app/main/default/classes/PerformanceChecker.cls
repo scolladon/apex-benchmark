@@ -1,57 +1,7 @@
 public with sharing class PerformanceChecker {
-  private static Integer ITERATION = 10000;
+  private static Double THREASHOLD = 0.95;
+
   public static void doSomethingStatic() {
-  }
-
-  @AuraEnabled
-  public static void staticPerformance() {
-    List<Integer> cpuTimes = new List<Integer>();
-    List<Integer> heapSizes = new List<Integer>();
-    while (Limits.getCpuTime() / Limits.getLimitCpuTime() < 0.95) {
-      Integer startCpuTime = Limits.getCpuTime();
-      Integer startHeapSize = Limits.getHeapSize();
-
-      // Do something
-      for (Integer i = 0; i < ITERATION; ++i) {
-        doSomethingStatic();
-      }
-
-      Integer cpuTime = Limits.getCpuTime() - startCpuTime;
-      Integer heapSize = Limits.getHeapSize() - startHeapSize;
-      //System.debug(LoggingLevel.WARN, 'PERF: Static method with ' + ITERATION + ' iterations took : ' + cpuTime + ' ms and ' + HeapSize + ' bytes');
-      cpuTimes.add(cpuTime);
-      heapSizes.add(heapSize);
-    }
-
-    Double avgCpuTime = getAverage(cpuTimes);
-    Double avgHeapSize = getAverage(heapSizes);
-    System.debug(LoggingLevel.WARN, 'PERF: Static method with ' + ITERATION + ' average iterations took : ' + avgCpuTime + ' ms and ' + avgHeapSize + ' bytes');
-  }
-
-  @AuraEnabled
-  public static void objectPerformance() {
-    List<Integer> cpuTimes = new List<Integer>();
-    List<Integer> heapSizes = new List<Integer>();
-    while (Limits.getCpuTime() / Limits.getLimitCpuTime() < 0.95) {
-      Integer startCpuTime = Limits.getCpuTime();
-      Integer startHeapSize = Limits.getHeapSize();
-
-      // Do something
-      for (Integer i = 0; i < ITERATION; ++i) {
-        MyObject myObject = new MyObject();
-        myObject.doSomethingWithObject();
-      }
-
-      Integer cpuTime = Limits.getCpuTime() - startCpuTime;
-      Integer heapSize = Limits.getHeapSize() - startHeapSize;
-      //System.debug(LoggingLevel.WARN, 'PERF: Object method with ' + ITERATION + ' iterations took : ' + cpuTime + ' ms and ' + HeapSize + ' bytes');
-      cpuTimes.add(cpuTime);
-      heapSizes.add(heapSize);
-    }
-
-    Double avgCpuTime = getAverage(cpuTimes);
-    Double avgHeapSize = getAverage(heapSizes);
-    System.debug(LoggingLevel.WARN, 'PERF: Object method with ' + ITERATION + ' average iterations took : ' + avgCpuTime + ' ms and ' + avgHeapSize + ' bytes');
   }
 
   private class MyObject {
@@ -59,17 +9,119 @@ public with sharing class PerformanceChecker {
     }
   }
 
-  public static Double getAverage(final List<Integer> ints) {
-    Double avg = 0;
-    if (ints?.size() > 0) {
+  @AuraEnabled
+  public static CalculationResult staticPerformance(Integer iteration) {
+    List<Integer> cpuTimes = new List<Integer>();
+    List<Integer> heapSizes = new List<Integer>();
+    while (Limits.getCpuTime() / Limits.getLimitCpuTime() < THREASHOLD) {
+      Integer startCpuTime = Limits.getCpuTime();
+      Integer startHeapSize = Limits.getHeapSize();
+
+      // Do something
+      for (Integer i = 0; i < iteration; ++i) {
+        doSomethingStatic();
+      }
+
+      Integer cpuTime = Limits.getCpuTime() - startCpuTime;
+      Integer heapSize = Limits.getHeapSize() - startHeapSize;
+      System.debug(LoggingLevel.WARN, 'PERF: Static method with ' + ITERATION + ' iterations took : ' + cpuTime + ' ms and ' + HeapSize + ' bytes');
+      cpuTimes.add(cpuTime);
+      heapSizes.add(heapSize);
+    }
+
+    StatCalculator cpu = new StatCalculator(cpuTimes);
+    StatCalculator heap = new StatCalculator(heapSizes);
+    return new CalculationResult(new StatMetrics(cpu), new StatMetrics(heap));
+  }
+
+  @AuraEnabled
+  public static CalculationResult objectPerformance(Integer iteration) {
+    List<Integer> cpuTimes = new List<Integer>();
+    List<Integer> heapSizes = new List<Integer>();
+    while (Limits.getCpuTime() / Limits.getLimitCpuTime() < THREASHOLD) {
+      Integer startCpuTime = Limits.getCpuTime();
+      Integer startHeapSize = Limits.getHeapSize();
+
+      // Do something
+      for (Integer i = 0; i < iteration; ++i) {
+        MyObject myObject = new MyObject();
+        myObject.doSomethingWithObject();
+      }
+
+      Integer cpuTime = Limits.getCpuTime() - startCpuTime;
+      Integer heapSize = Limits.getHeapSize() - startHeapSize;
+      System.debug(LoggingLevel.WARN, 'PERF: Object method with ' + ITERATION + ' iterations took : ' + cpuTime + ' ms and ' + HeapSize + ' bytes');
+      cpuTimes.add(cpuTime);
+      heapSizes.add(heapSize);
+    }
+
+    StatCalculator cpu = new StatCalculator(cpuTimes);
+    StatCalculator heap = new StatCalculator(heapSizes);
+    return new CalculationResult(new StatMetrics(cpu), new StatMetrics(heap));
+  }
+
+  public class StatCalculator {
+    private List<Integer> datas;
+    public StatCalculator(final List<Integer> datas) {
+      this.datas = datas;
+      this.datas.sort();
+    }
+
+    public Integer getMin() {
+      return this.datas[0];
+    }
+
+    public Integer getMax() {
+      return this.datas[this.datas.size() - 1];
+    }
+
+    public Double getMean() {
       Integer total = 0;
 
-      for (Integer i : ints) {
+      for (Integer i : this.datas) {
         total += i;
       }
 
-      avg = Double.valueOf(total) / ints.size();
+      return Double.valueOf(total) / this.datas.size();
     }
-    return avg;
+
+    public Integer getMedian() {
+      Integer mid = this.datas.size() / 2;
+
+      return this.datas[mid];
+    }
+  }
+
+  public class StatMetrics {
+    @AuraEnabled
+    public Integer max;
+
+    @AuraEnabled
+    public Integer min;
+
+    @AuraEnabled
+    public Double mean;
+
+    @AuraEnabled
+    public Integer median;
+
+    public StatMetrics(StatCalculator calculator) {
+      this.max = calculator.getMax();
+      this.min = calculator.getMin();
+      this.mean = calculator.getMean();
+      this.median = calculator.getMedian();
+    }
+  }
+
+  public class CalculationResult {
+    @AuraEnabled
+    public StatMetrics cpuMetrics;
+    @AuraEnabled
+    public StatMetrics heapSizeMetrics;
+
+    public CalculationResult(StatMetrics cpuMetrics, StatMetrics heapSizeMetrics) {
+      this.cpuMetrics = cpuMetrics;
+      this.heapSizeMetrics = heapSizeMetrics;
+    }
   }
 }

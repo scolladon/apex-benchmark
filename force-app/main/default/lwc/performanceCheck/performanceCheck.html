@@ -1,7 +1,15 @@
 <template>
+    <div class="slds-p-around_medium">
+        <lightning-input type="number" name="seven" value={iteration} onchange={handleIterationChange}
+            placeholder="50000" label="Iteration number"></lightning-input>
+    </div>
     <lightning-button label="Static" title="Static" onclick={staticClick}
-        class="slds-m-left_x-small"></lightning-button>
+        class="slds-m-left_x-small" disabled={isbuttonDisabled}></lightning-button>
     <lightning-button label="Object" title="Object" onclick={objectClick}
-        class="slds-m-left_x-small"></lightning-button>
-    
+        class="slds-m-left_x-small" disabled={isbuttonDisabled}></lightning-button>
+
+        <div style="height: 300px;">
+            <lightning-datatable key-field="id" data={data} columns={columns}>
+            </lightning-datatable>
+        </div>
 </template>
