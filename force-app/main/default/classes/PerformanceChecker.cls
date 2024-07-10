@@ -1,6 +1,4 @@
 public with sharing class PerformanceChecker {
-  private static Double THREASHOLD = 0.95;
-
   public static void doSomethingStatic() {
   }
 
@@ -9,62 +7,162 @@ public with sharing class PerformanceChecker {
     }
   }
 
-  @AuraEnabled
-  public static CalculationResult staticPerformance(Integer iteration) {
-    List<Integer> cpuTimes = new List<Integer>();
-    List<Integer> heapSizes = new List<Integer>();
-    while (Limits.getCpuTime() / Limits.getLimitCpuTime() < THREASHOLD) {
-      Integer startCpuTime = Limits.getCpuTime();
-      Integer startHeapSize = Limits.getHeapSize();
+  public abstract class MetricAggregator {
+    private MetricValues values = new MetricValues();
+    private String description;
+    public abstract void setup();
+    public abstract void capture();
+    public MetricValues getValues() {
+      return this.values;
+    }
+    public String getDescription() {
+      return this.description;
+    }
+  }
 
-      // Do something
-      for (Integer i = 0; i < iteration; ++i) {
-        doSomethingStatic();
-      }
+  public class CPUTimeMetricAggregator extends MetricAggregator {
+    private Integer startCpuTime;
 
-      Integer cpuTime = Limits.getCpuTime() - startCpuTime;
-      Integer heapSize = Limits.getHeapSize() - startHeapSize;
-      System.debug(LoggingLevel.WARN, 'PERF: Static method with ' + ITERATION + ' iterations took : ' + cpuTime + ' ms and ' + HeapSize + ' bytes');
-      cpuTimes.add(cpuTime);
-      heapSizes.add(heapSize);
+    public CPUTimeMetricAggregator() {
+      this.description = 'cpu time';
     }
 
-    StatCalculator cpu = new StatCalculator(cpuTimes);
-    StatCalculator heap = new StatCalculator(heapSizes);
-    return new CalculationResult(new StatMetrics(cpu), new StatMetrics(heap));
+    public override void setup() {
+      this.startCpuTime = Limits.getCpuTime();
+    }
+
+    public override void capture() {
+      Integer cpuTime = Limits.getCpuTime() - this.startCpuTime;
+      this.values.addMetric(cpuTime);
+    }
+  }
+
+  public class HeapSizeMetricAggregator extends MetricAggregator {
+    private Integer startHeapSize;
+
+    public HeapSizeMetricAggregator() {
+      this.description = 'heap size';
+    }
+
+    public override void setup() {
+      this.startHeapSize = Limits.getHeapSize();
+    }
+
+    public override void capture() {
+      Integer heapSize = Limits.getHeapSize() - this.startHeapSize;
+      this.values.addMetric(heapSize);
+    }
+  }
+
+  public interface BenchmarkJob {
+    void execute();
+  }
+
+  public class ObjectMethodJob implements BenchmarkJob {
+    public void execute() {
+      MyObject o = new MyObject();
+      o.doSomethingWithObject();
+    }
+  }
+
+  public class StaticMethodJob implements BenchmarkJob {
+    public void execute() {
+      PerformanceChecker.doSomethingStatic();
+    }
+  }
+
+  public class BenchmarkRunner {
+    private List<MetricAggregator> metricAggregators = new List<MetricAggregator>();
+    private BenchmarkJob job;
+    private Decimal threashold = 0.95;
+    private Integer samplingSize = 50000;
+
+    public BenchmarkRunner withMetricAggregator(MetricAggregator metricAggregator) {
+      this.metricAggregators.add(metricAggregator);
+      return this;
+    }
+
+    public BenchmarkRunner withSamplingSize(Integer samplingSize) {
+      this.samplingSize = samplingSize;
+      return this;
+    }
+
+    public BenchmarkRunner withJob(BenchmarkJob job) {
+      this.job = job;
+      return this;
+    }
+
+    public CalculationResult run() {
+      while (Limits.getCpuTime() / Limits.getLimitCpuTime() < THREASHOLD) {
+        for (MetricAggregator metricAggregator : this.metricAggregators) {
+          metricAggregator.setup();
+        }
+
+        for (Integer i = 0; i < this.samplingSize; ++i) {
+          this.job.execute();
+        }
+
+        for (MetricAggregator metricAggregator : this.metricAggregators) {
+          metricAggregator.capture();
+        }
+      }
+
+      CalculationResult result = new CalculationResult();
+      for (MetricAggregator metricAggregator : this.metricAggregators) {
+        result.withStat(new StatMetricBuilder().withAggregator(metricAggregator).build());
+      }
+      return result;
+    }
+  }
+
+  public class MetricValues {
+    private List<Integer> values = new List<Integer>();
+
+    public void addMetric(Integer value) {
+      this.values.add(value);
+    }
+
+    public List<Integer> getValues() {
+      return this.values;
+    }
+  }
+
+  @AuraEnabled
+  public static CalculationResult staticPerformance(Integer iteration) {
+    return new BenchmarkRunner()
+      .withSamplingSize(iteration)
+      .withMetricAggregator(new HeapSizeMetricAggregator())
+      .withMetricAggregator(new CPUTimeMetricAggregator())
+      .withJob(new StaticMethodJob())
+      .run();
   }
 
   @AuraEnabled
   public static CalculationResult objectPerformance(Integer iteration) {
-    List<Integer> cpuTimes = new List<Integer>();
-    List<Integer> heapSizes = new List<Integer>();
-    while (Limits.getCpuTime() / Limits.getLimitCpuTime() < THREASHOLD) {
-      Integer startCpuTime = Limits.getCpuTime();
-      Integer startHeapSize = Limits.getHeapSize();
-
-      // Do something
-      for (Integer i = 0; i < iteration; ++i) {
-        MyObject myObject = new MyObject();
-        myObject.doSomethingWithObject();
-      }
-
-      Integer cpuTime = Limits.getCpuTime() - startCpuTime;
-      Integer heapSize = Limits.getHeapSize() - startHeapSize;
-      System.debug(LoggingLevel.WARN, 'PERF: Object method with ' + ITERATION + ' iterations took : ' + cpuTime + ' ms and ' + HeapSize + ' bytes');
-      cpuTimes.add(cpuTime);
-      heapSizes.add(heapSize);
-    }
-
-    StatCalculator cpu = new StatCalculator(cpuTimes);
-    StatCalculator heap = new StatCalculator(heapSizes);
-    return new CalculationResult(new StatMetrics(cpu), new StatMetrics(heap));
+    return new BenchmarkRunner()
+      .withSamplingSize(iteration)
+      .withMetricAggregator(new HeapSizeMetricAggregator())
+      .withMetricAggregator(new CPUTimeMetricAggregator())
+      .withJob(new ObjectMethodJob())
+      .run();
   }
 
-  public class StatCalculator {
+  public class StatMetricBuilder {
     private List<Integer> datas;
-    public StatCalculator(final List<Integer> datas) {
-      this.datas = datas;
+    private String description;
+
+    public StatMetricBuilder withAggregator(final MetricAggregator aggregator) {
+      this.datas = aggregator.getValues().getValues();
+      this.description = aggregator.getDescription();
       this.datas.sort();
+      return this;
+    }
+    public StatMetrics build() {
+      return new StatMetrics(this);
+    }
+
+    public String getDescription() {
+      return this.description;
     }
 
     public Integer getMin() {
@@ -90,9 +188,25 @@ public with sharing class PerformanceChecker {
 
       return this.datas[mid];
     }
+
+    public Decimal getDeviation() {
+      return Math.sqrt(this.getVariance());
+    }
+
+    public Decimal getVariance() {
+      Decimal m = this.getMean();
+      Decimal sum = 0.0;
+      for (Integer x : this.datas) {
+        sum += (x - m).pow(2);
+      }
+      return sum / this.datas.size();
+    }
   }
 
   public class StatMetrics {
+    @AuraEnabled
+    public String description;
+
     @AuraEnabled
     public Integer max;
 
@@ -105,23 +219,34 @@ public with sharing class PerformanceChecker {
     @AuraEnabled
     public Integer median;
 
-    public StatMetrics(StatCalculator calculator) {
+    @AuraEnabled
+    public Decimal deviation;
+
+    @AuraEnabled
+    public Decimal variance;
+
+    public StatMetrics(StatMetricBuilder calculator) {
+      this.description = calculator.getDescription();
       this.max = calculator.getMax();
       this.min = calculator.getMin();
       this.mean = calculator.getMean();
       this.median = calculator.getMedian();
+      this.deviation = calculator.getDeviation();
+      this.variance = calculator.getVariance();
     }
   }
 
   public class CalculationResult {
     @AuraEnabled
-    public StatMetrics cpuMetrics;
-    @AuraEnabled
-    public StatMetrics heapSizeMetrics;
+    public List<StatMetrics> stats;
 
-    public CalculationResult(StatMetrics cpuMetrics, StatMetrics heapSizeMetrics) {
-      this.cpuMetrics = cpuMetrics;
-      this.heapSizeMetrics = heapSizeMetrics;
+    public CalculationResult() {
+      this.stats = new List<StatMetrics>();
+    }
+
+    public CalculationResult withStat(StatMetrics metrics) {
+      this.stats.add(metrics);
+      return this;
     }
   }
 }

@@ -29,25 +29,34 @@ export default class PerformanceCheck extends LightningElement {
   async staticClick() {
     this.disableButton = true;
     const executionResult = await staticPerformance({ iteration: this.iteration });
-    const type = `Static(${this.iteration} iterations)`;
-    this.addStat(type, "ms", executionResult.cpuMetrics);
-    this.addStat(type, "bytes", executionResult.heapSizeMetrics);
-    this.data = [...this.data];
+    this.addStats(executionResult, "Static");
     this.disableButton = false;
   }
 
   async objectClick() {
     this.disableButton = true;
     const executionResult = await objectPerformance({ iteration: this.iteration });
-    const type = `Object(${this.iteration} iterations)`;
-    this.addStat(type, "ms", executionResult.cpuMetrics);
-    this.addStat(type, "bytes", executionResult.heapSizeMetrics);
-    this.data = [...this.data];
+    this.addStats(executionResult, "Object");
     this.disableButton = false;
   }
 
   handleIterationChange(e) {
     this.iteration = e.detail.value;
+  }
+
+  addStats(executionResult, jpbType) {
+    const type = `${jpbType}(${this.iteration} sampling size)`;
+    this.addStat(
+      type,
+      "ms",
+      executionResult.stats.find((stat) => stat.description === "cpu time")
+    );
+    this.addStat(
+      type,
+      "bytes",
+      executionResult.stats.find((stat) => stat.description === "heap size")
+    );
+    this.data = [...this.data];
   }
 
   addStat(type, metric, stats) {
