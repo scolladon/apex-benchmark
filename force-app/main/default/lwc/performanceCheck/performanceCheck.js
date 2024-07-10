@@ -13,41 +13,37 @@ const columns = [
 ];
 
 export default class PerformanceCheck extends LightningElement {
-  isbuttonDisabled = false;
+  disableButton = false;
 
-  iteration = 50000;
+  iteration;
 
   @track
   data = [];
 
   columns = columns;
 
-  get staticClickDisabled() {
-    return this.isStaticClickDisabled;
-  }
-
-  get objectClickDisabled() {
-    return this.isObjectClickDisabled;
+  get isButtonDisabled() {
+    return !this.iteration || this.disableButton;
   }
 
   async staticClick() {
-    this.isbuttonDisabled = true;
+    this.disableButton = true;
     const executionResult = await staticPerformance({ iteration: this.iteration });
     const type = `Static(${this.iteration} iterations)`;
     this.addStat(type, "ms", executionResult.cpuMetrics);
     this.addStat(type, "bytes", executionResult.heapSizeMetrics);
     this.data = [...this.data];
-    this.isbuttonDisabled = false;
+    this.disableButton = false;
   }
 
   async objectClick() {
-    this.isbuttonDisabled = true;
+    this.disableButton = true;
     const executionResult = await objectPerformance({ iteration: this.iteration });
     const type = `Object(${this.iteration} iterations)`;
     this.addStat(type, "ms", executionResult.cpuMetrics);
     this.addStat(type, "bytes", executionResult.heapSizeMetrics);
     this.data = [...this.data];
-    this.isbuttonDisabled = false;
+    this.disableButton = false;
   }
 
   handleIterationChange(e) {

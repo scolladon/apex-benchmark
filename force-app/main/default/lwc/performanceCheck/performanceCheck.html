@@ -1,15 +1,18 @@
 <template>
-    <div class="slds-p-around_medium">
-        <lightning-input type="number" name="seven" value={iteration} onchange={handleIterationChange}
-            placeholder="50000" label="Iteration number"></lightning-input>
+  <div class="slds-card-wrapper">
+    <div class="slds-grid slds-gutters slds-grid_vertical-align-center">
+      <div class="slds-col slds-size_2-of-8">
+        <lightning-input type="number" variant="label-hidden" placeholder="Sample size" value={iteration} onchange={handleIterationChange}></lightning-input>
+      </div>
+      <div class="slds-col slds-size_3-of-8">
+        <lightning-button label="Static" title="Static" onclick={staticClick} disabled={isButtonDisabled}></lightning-button>
+      </div>
+      <div class="slds-col slds-size_3-of-8">
+        <lightning-button label="Object" title="Object" onclick={objectClick} disabled={isButtonDisabled}></lightning-button>
+      </div>
     </div>
-    <lightning-button label="Static" title="Static" onclick={staticClick}
-        class="slds-m-left_x-small" disabled={isbuttonDisabled}></lightning-button>
-    <lightning-button label="Object" title="Object" onclick={objectClick}
-        class="slds-m-left_x-small" disabled={isbuttonDisabled}></lightning-button>
-
-        <div style="height: 300px;">
-            <lightning-datatable key-field="id" data={data} columns={columns}>
-            </lightning-datatable>
-        </div>
+    <div class="slds-m-top_small">
+      <lightning-datatable key-field="id" data={data} columns={columns}> </lightning-datatable>
+    </div>
+  </div>
 </template>
