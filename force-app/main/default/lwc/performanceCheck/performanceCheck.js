@@ -1,6 +1,7 @@
-import { LightningElement, wire } from "lwc";
+import { LightningElement, track, wire } from "lwc";
 
 import getBenchmarkRegistry from "@salesforce/apex/PerformanceChecker.getBenchmarkRegistry";
+import getMetricRegistry from "@salesforce/apex/PerformanceChecker.getMetricRegistry";
 import runBenchmark from "@salesforce/apex/PerformanceChecker.runBenchmark";
 
 const columns = [
@@ -18,14 +19,18 @@ const columns = [
 
 export default class PerformanceCheck extends LightningElement {
   jobRegistry = [];
+  metricRegistry = [];
   iteration;
 
-  data = [];
+  stats = [];
   columns = columns;
+
+  @track
+  selectedMetrics = [];
 
   disableButton = false;
   get isButtonDisabled() {
-    return !this.iteration || this.disableButton;
+    return !this.iteration || this.disableButton || this.selectedMetrics.length === 0;
   }
 
   @wire(getBenchmarkRegistry)
@@ -39,14 +44,37 @@ export default class PerformanceCheck extends LightningElement {
     }
   }
 
-  async handleClick(e) {
+  @wire(getMetricRegistry)
+  wiredMetricRegistry({ error, data }) {
+    if (data) {
+      this.error = undefined;
+      this.metricRegistry = data;
+    } else if (error) {
+      this.metricRegistry = undefined;
+      this.error = error;
+    }
+  }
+
+  handleMetricChoice(e) {
+    const definition = e.currentTarget.dataset.id;
+    const checked = e.detail.checked;
+
+    if (checked) {
+      this.selectedMetrics.push({ definition });
+    } else {
+      this.selectedMetrics = this.selectedMetrics.filter((metric) => metric.definition !== definition);
+    }
+  }
+
+  async handleJobClick(e) {
     this.disableButton = true;
     this.error = undefined;
 
     const definition = e.currentTarget.dataset.id;
     const samplingSize = this.iteration;
+    const metrics = this.selectedMetrics;
     try {
-      const executionResult = await runBenchmark({ jobConf: { jobType: { definition }, samplingSize } });
+      const executionResult = await runBenchmark({ jobConf: { jobType: { definition }, samplingSize, metrics } });
       this.addStats(executionResult);
     } catch (error) {
       this.error = error;
@@ -60,7 +88,7 @@ export default class PerformanceCheck extends LightningElement {
   }
 
   addStats(executionResult) {
-    this.data = this.data.concat(
+    this.stats = this.stats.concat(
       executionResult.stats.map((stat) => ({
         id: `${executionResult.jobConf.jobType.definition}-${Date.now()}`,
         jobType: executionResult.jobConf.jobType.definition,

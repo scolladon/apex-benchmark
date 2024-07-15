@@ -9,14 +9,19 @@
       <div class="slds-col slds-size_2-of-8">
         <lightning-input type="number" variant="label-hidden" placeholder="Sample size" value={iteration} onchange={handleIterationChange}></lightning-input>
       </div>
-      <div class="slds-col slds-size_6-of-8">
+      <div class="slds-col slds-size_3-of-8">
         <template for:each={jobRegistry} for:item="job">
-          <lightning-button key={job.definition} data-id={job.definition} label={job.definition} title={job.definition} onclick={handleClick} disabled={isButtonDisabled}></lightning-button>
+          <lightning-button key={job.definition} data-id={job.definition} label={job.definition} title={job.definition} onclick={handleJobClick} disabled={isButtonDisabled}></lightning-button>
+        </template>
+      </div>
+      <div class="slds-col slds-size_3-of-8">
+        <template for:each={metricRegistry} for:item="metric">
+          <lightning-input type="toggle" key={metric.definition} data-id={metric.definition} label={metric.definition} onchange={handleMetricChoice}></lightning-input>
         </template>
       </div>
     </div>
     <div class="slds-m-top_small">
-      <lightning-datatable key-field="id" data={data} columns={columns}> </lightning-datatable>
+      <lightning-datatable key-field="id" data={stats} columns={columns} hide-checkbox-column="true"> </lightning-datatable>
     </div>
   </div>
 </template>
