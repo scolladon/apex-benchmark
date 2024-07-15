@@ -1,70 +1,72 @@
-import { LightningElement, track } from "lwc";
+import { LightningElement, wire } from "lwc";
 
-import staticPerformance from "@salesforce/apex/PerformanceChecker.staticPerformance";
-import objectPerformance from "@salesforce/apex/PerformanceChecker.objectPerformance";
+import getBenchmarkRegistry from "@salesforce/apex/PerformanceChecker.getBenchmarkRegistry";
+import runBenchmark from "@salesforce/apex/PerformanceChecker.runBenchmark";
 
 const columns = [
-  { label: "Type", fieldName: "type" },
+  { label: "Type", fieldName: "jobType" },
+  { label: "Description", fieldName: "description" },
   { label: "Metric", fieldName: "metric" },
+  { label: "Sampling Size", fieldName: "samplingSize" },
   { label: "Min", fieldName: "min", type: "number" },
   { label: "Max", fieldName: "max", type: "number" },
   { label: "Mean", fieldName: "mean", type: "number" },
-  { label: "Median", fieldName: "median", type: "number" }
+  { label: "Median", fieldName: "median", type: "number" },
+  { label: "Deviation", fieldName: "deviation", type: "number" },
+  { label: "Variance", fieldName: "variance", type: "number" }
 ];
 
 export default class PerformanceCheck extends LightningElement {
-  disableButton = false;
-
+  jobRegistry = [];
   iteration;
 
-  @track
   data = [];
-
   columns = columns;
 
+  disableButton = false;
   get isButtonDisabled() {
     return !this.iteration || this.disableButton;
   }
 
-  async staticClick() {
-    this.disableButton = true;
-    const executionResult = await staticPerformance({ iteration: this.iteration });
-    this.addStats(executionResult, "Static");
-    this.disableButton = false;
+  @wire(getBenchmarkRegistry)
+  wiredJobRegistry({ error, data }) {
+    if (data) {
+      this.error = undefined;
+      this.jobRegistry = data;
+    } else if (error) {
+      this.jobRegistry = undefined;
+      this.error = error;
+    }
   }
 
-  async objectClick() {
+  async handleClick(e) {
     this.disableButton = true;
-    const executionResult = await objectPerformance({ iteration: this.iteration });
-    this.addStats(executionResult, "Object");
-    this.disableButton = false;
+    this.error = undefined;
+
+    const definition = e.currentTarget.dataset.id;
+    const samplingSize = this.iteration;
+    try {
+      const executionResult = await runBenchmark({ jobConf: { jobType: { definition }, samplingSize } });
+      this.addStats(executionResult);
+    } catch (error) {
+      this.error = error;
+    } finally {
+      this.disableButton = false;
+    }
   }
 
   handleIterationChange(e) {
     this.iteration = e.detail.value;
   }
 
-  addStats(executionResult, jpbType) {
-    const type = `${jpbType}(${this.iteration} sampling size)`;
-    this.addStat(
-      type,
-      "ms",
-      executionResult.stats.find((stat) => stat.description === "cpu time")
+  addStats(executionResult) {
+    this.data = this.data.concat(
+      executionResult.stats.map((stat) => ({
+        id: `${executionResult.jobConf.jobType.definition}-${Date.now()}`,
+        jobType: executionResult.jobConf.jobType.definition,
+        samplingSize: executionResult.jobConf.samplingSize,
+        ...stat
+      }))
     );
-    this.addStat(
-      type,
-      "bytes",
-      executionResult.stats.find((stat) => stat.description === "heap size")
-    );
-    this.data = [...this.data];
-  }
-
-  addStat(type, metric, stats) {
-    this.data.push({
-      id: `${type}-${metric}-${this.iteration}-${Date.now()}`,
-      ...stats,
-      type,
-      metric
-    });
   }
 }

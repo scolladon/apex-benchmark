@@ -1,15 +1,8 @@
 public with sharing class PerformanceChecker {
-  public static void doSomethingStatic() {
-  }
-
-  private class MyObject {
-    public void doSomethingWithObject() {
-    }
-  }
-
   public abstract class MetricAggregator {
     private MetricValues values = new MetricValues();
     private String description;
+    private String metric;
     public abstract void setup();
     public abstract void capture();
     public MetricValues getValues() {
@@ -18,6 +11,9 @@ public with sharing class PerformanceChecker {
     public String getDescription() {
       return this.description;
     }
+    public String getMetric() {
+      return this.metric;
+    }
   }
 
   public class CPUTimeMetricAggregator extends MetricAggregator {
@@ -25,6 +21,7 @@ public with sharing class PerformanceChecker {
 
     public CPUTimeMetricAggregator() {
       this.description = 'cpu time';
+      this.metric = 'ms';
     }
 
     public override void setup() {
@@ -42,6 +39,7 @@ public with sharing class PerformanceChecker {
 
     public HeapSizeMetricAggregator() {
       this.description = 'heap size';
+      this.metric = 'bytes';
     }
 
     public override void setup() {
@@ -54,52 +52,42 @@ public with sharing class PerformanceChecker {
     }
   }
 
-  public interface BenchmarkJob {
-    void execute();
-  }
-
-  public class ObjectMethodJob implements BenchmarkJob {
-    public void execute() {
-      MyObject o = new MyObject();
-      o.doSomethingWithObject();
-    }
-  }
-
-  public class StaticMethodJob implements BenchmarkJob {
-    public void execute() {
-      PerformanceChecker.doSomethingStatic();
-    }
-  }
-
   public class BenchmarkRunner {
     private List<MetricAggregator> metricAggregators = new List<MetricAggregator>();
     private BenchmarkJob job;
     private Decimal threashold = 0.95;
-    private Integer samplingSize = 50000;
+    private BenchmarkModel.JobConf jobConf;
+    private BenchmarkFactory benchmarkFactory;
 
-    public BenchmarkRunner withMetricAggregator(MetricAggregator metricAggregator) {
+    @testVisible
+    private BenchmarkRunner(BenchmarkFactory benchmarkFactory) {
+      this.benchmarkFactory = benchmarkFactory;
+    }
+
+    private BenchmarkRunner() {
+      this(new BenchmarkFactory());
+    }
+
+    public BenchmarkRunner with(MetricAggregator metricAggregator) {
       this.metricAggregators.add(metricAggregator);
       return this;
     }
 
-    public BenchmarkRunner withSamplingSize(Integer samplingSize) {
-      this.samplingSize = samplingSize;
+    public BenchmarkRunner with(BenchmarkModel.JobConf jobConf) {
+      this.jobConf = jobConf;
       return this;
     }
 
-    public BenchmarkRunner withJob(BenchmarkJob job) {
-      this.job = job;
-      return this;
-    }
-
-    public CalculationResult run() {
+    public BenchmarkResult run() {
+      final BenchmarkJob job = this.benchmarkFactory.getSubject(this.jobConf.jobType);
+      final Integer samplingSize = this.jobConf.samplingSize ?? 50000;
       while (Limits.getCpuTime() / Limits.getLimitCpuTime() < THREASHOLD) {
         for (MetricAggregator metricAggregator : this.metricAggregators) {
           metricAggregator.setup();
         }
 
-        for (Integer i = 0; i < this.samplingSize; ++i) {
-          this.job.execute();
+        for (Integer i = 0; i < samplingSize; ++i) {
+          job.execute();
         }
 
         for (MetricAggregator metricAggregator : this.metricAggregators) {
@@ -107,9 +95,9 @@ public with sharing class PerformanceChecker {
         }
       }
 
-      CalculationResult result = new CalculationResult();
+      BenchmarkResult result = new BenchmarkResult().with(this.jobConf);
       for (MetricAggregator metricAggregator : this.metricAggregators) {
-        result.withStat(new StatMetricBuilder().withAggregator(metricAggregator).build());
+        result.with(new StatMetricBuilder().with(metricAggregator).build());
       }
       return result;
     }
@@ -127,33 +115,25 @@ public with sharing class PerformanceChecker {
     }
   }
 
-  @AuraEnabled
-  public static CalculationResult staticPerformance(Integer iteration) {
-    return new BenchmarkRunner()
-      .withSamplingSize(iteration)
-      .withMetricAggregator(new HeapSizeMetricAggregator())
-      .withMetricAggregator(new CPUTimeMetricAggregator())
-      .withJob(new StaticMethodJob())
-      .run();
+  @AuraEnabled(cacheable=true)
+  public static List<BenchmarkModel.JobType> getBenchmarkRegistry() {
+    BenchmarkFactory factory = new BenchmarkFactory();
+    return factory.listAvailableJobs();
   }
 
   @AuraEnabled
-  public static CalculationResult objectPerformance(Integer iteration) {
-    return new BenchmarkRunner()
-      .withSamplingSize(iteration)
-      .withMetricAggregator(new HeapSizeMetricAggregator())
-      .withMetricAggregator(new CPUTimeMetricAggregator())
-      .withJob(new ObjectMethodJob())
-      .run();
+  public static BenchmarkResult runBenchmark(BenchmarkModel.JobConf jobConf) {
+    return new BenchmarkRunner().with(jobConf).with(new HeapSizeMetricAggregator()).with(new CPUTimeMetricAggregator()).run();
   }
 
   public class StatMetricBuilder {
     private List<Integer> datas;
-    private String description;
+    private MetricAggregator metricAggregator;
+    private String metric;
 
-    public StatMetricBuilder withAggregator(final MetricAggregator aggregator) {
+    public StatMetricBuilder with(final MetricAggregator aggregator) {
       this.datas = aggregator.getValues().getValues();
-      this.description = aggregator.getDescription();
+      this.metricAggregator = aggregator;
       this.datas.sort();
       return this;
     }
@@ -162,7 +142,11 @@ public with sharing class PerformanceChecker {
     }
 
     public String getDescription() {
-      return this.description;
+      return this.metricAggregator.getDescription();
+    }
+
+    public String getMetric() {
+      return this.metricAggregator.getMetric();
     }
 
     public Integer getMin() {
@@ -208,6 +192,9 @@ public with sharing class PerformanceChecker {
     public String description;
 
     @AuraEnabled
+    public String metric;
+
+    @AuraEnabled
     public Integer max;
 
     @AuraEnabled
@@ -227,6 +214,7 @@ public with sharing class PerformanceChecker {
 
     public StatMetrics(StatMetricBuilder calculator) {
       this.description = calculator.getDescription();
+      this.metric = calculator.getMetric();
       this.max = calculator.getMax();
       this.min = calculator.getMin();
       this.mean = calculator.getMean();
@@ -236,16 +224,24 @@ public with sharing class PerformanceChecker {
     }
   }
 
-  public class CalculationResult {
+  public class BenchmarkResult {
     @AuraEnabled
-    public List<StatMetrics> stats;
+    public List<StatMetrics> stats { get; private set; }
 
-    public CalculationResult() {
+    @AuraEnabled
+    public BenchmarkModel.JobConf jobConf { get; private set; }
+
+    public BenchmarkResult() {
       this.stats = new List<StatMetrics>();
     }
 
-    public CalculationResult withStat(StatMetrics metrics) {
+    public BenchmarkResult with(StatMetrics metrics) {
       this.stats.add(metrics);
+      return this;
+    }
+
+    public BenchmarkResult with(BenchmarkModel.JobConf jobConf) {
+      this.jobConf = jobConf;
       return this;
     }
   }

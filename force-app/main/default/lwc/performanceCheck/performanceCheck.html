@@ -1,14 +1,18 @@
 <template>
   <div class="slds-card-wrapper">
+    <div class="error">
+      <template lwc:if={error}>
+        <p>{error}</p>
+      </template>
+    </div>
     <div class="slds-grid slds-gutters slds-grid_vertical-align-center">
       <div class="slds-col slds-size_2-of-8">
         <lightning-input type="number" variant="label-hidden" placeholder="Sample size" value={iteration} onchange={handleIterationChange}></lightning-input>
       </div>
-      <div class="slds-col slds-size_3-of-8">
-        <lightning-button label="Static" title="Static" onclick={staticClick} disabled={isButtonDisabled}></lightning-button>
-      </div>
-      <div class="slds-col slds-size_3-of-8">
-        <lightning-button label="Object" title="Object" onclick={objectClick} disabled={isButtonDisabled}></lightning-button>
+      <div class="slds-col slds-size_6-of-8">
+        <template for:each={jobRegistry} for:item="job">
+          <lightning-button key={job.definition} data-id={job.definition} label={job.definition} title={job.definition} onclick={handleClick} disabled={isButtonDisabled}></lightning-button>
+        </template>
       </div>
     </div>
     <div class="slds-m-top_small">
