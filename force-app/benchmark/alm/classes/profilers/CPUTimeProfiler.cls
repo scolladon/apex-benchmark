@@ -1,7 +1,7 @@
-public class CPUTimeMetricAggregator extends BaseMetricAggregator {
+public class CPUTimeProfiler extends BaseProfiler {
   private Integer startCpuTime;
 
-  public CPUTimeMetricAggregator() {
+  public CPUTimeProfiler() {
     this.description = 'cpu time';
     this.metric = 'ms';
   }

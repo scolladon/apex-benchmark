@@ -1,4 +1,4 @@
-public class PerformanceChecker {
+public class Benchmarker {
   @AuraEnabled(cacheable=true)
   public static List<JobType> getBenchmarkRegistry() {
     BenchmarkFactory factory = new BenchmarkFactory();

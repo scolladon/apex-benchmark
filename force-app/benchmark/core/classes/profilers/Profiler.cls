@@ -1,4 +1,4 @@
-public interface MetricAggregator {
+public interface Profiler {
   List<Integer> getValues();
   String getDescription();
   String getMetric();

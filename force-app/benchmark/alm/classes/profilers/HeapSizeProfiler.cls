@@ -1,7 +1,7 @@
-public class HeapSizeMetricAggregator extends BaseMetricAggregator {
+public class HeapSizeProfiler extends BaseProfiler {
   private Integer startHeapSize;
 
-  public HeapSizeMetricAggregator() {
+  public HeapSizeProfiler() {
     this.description = 'heap size';
     this.metric = 'bytes';
   }

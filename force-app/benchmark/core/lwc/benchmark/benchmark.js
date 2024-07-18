@@ -1,8 +1,8 @@
 import { LightningElement, track, wire } from "lwc";
 
-import getBenchmarkRegistry from "@salesforce/apex/PerformanceChecker.getBenchmarkRegistry";
-import getMetricRegistry from "@salesforce/apex/PerformanceChecker.getMetricRegistry";
-import runBenchmark from "@salesforce/apex/PerformanceChecker.runBenchmark";
+import getBenchmarkRegistry from "@salesforce/apex/Benchmarker.getBenchmarkRegistry";
+import getMetricRegistry from "@salesforce/apex/Benchmarker.getMetricRegistry";
+import runBenchmark from "@salesforce/apex/Benchmarker.runBenchmark";
 
 const columns = [
   { label: "Type", fieldName: "jobType" },

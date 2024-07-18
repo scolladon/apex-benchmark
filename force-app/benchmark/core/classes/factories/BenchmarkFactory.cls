@@ -3,8 +3,8 @@ public class BenchmarkFactory {
     return (BenchmarkJob) Type.forName(jobType.definition).newInstance();
   }
 
-  public MetricAggregator getAggregator(MetricType metricType) {
-    return (MetricAggregator) Type.forName(metricType.definition).newInstance();
+  public Profiler getAggregator(MetricType metricType) {
+    return (Profiler) Type.forName(metricType.definition).newInstance();
   }
 
   public List<JobType> listAvailableJobs() {
@@ -21,7 +21,7 @@ public class BenchmarkFactory {
   public List<MetricType> listAvailableMetrics() {
     final List<MetricType> metricTypes = new List<MetricType>();
 
-    for (ApexTypeImplementor implem : [SELECT ClassName FROM ApexTypeImplementor WHERE InterfaceName = :MetricAggregator.class.getName() AND IsConcrete = TRUE]) {
+    for (ApexTypeImplementor implem : [SELECT ClassName FROM ApexTypeImplementor WHERE InterfaceName = :Profiler.class.getName() AND IsConcrete = TRUE]) {
       final MetricType metricType = new MetricType();
       metricType.definition = implem.ClassName;
       metricTypes.add(metricType);

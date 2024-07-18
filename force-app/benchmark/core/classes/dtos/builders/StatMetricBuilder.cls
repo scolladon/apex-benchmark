@@ -1,11 +1,11 @@
 public class StatMetricBuilder {
   private List<Integer> datas;
-  private MetricAggregator metricAggregator;
+  private Profiler Profiler;
   private String metric;
 
-  public StatMetricBuilder with(final MetricAggregator aggregator) {
+  public StatMetricBuilder with(final Profiler aggregator) {
     this.datas = aggregator.getValues();
-    this.metricAggregator = aggregator;
+    this.Profiler = aggregator;
     this.datas.sort();
     return this;
   }
@@ -14,11 +14,11 @@ public class StatMetricBuilder {
   }
 
   public String getDescription() {
-    return this.metricAggregator.getDescription();
+    return this.Profiler.getDescription();
   }
 
   public String getMetric() {
-    return this.metricAggregator.getMetric();
+    return this.Profiler.getMetric();
   }
 
   public Integer getMin() {

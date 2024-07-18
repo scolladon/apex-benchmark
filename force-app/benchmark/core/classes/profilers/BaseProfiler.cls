@@ -1,4 +1,4 @@
-public abstract class BaseMetricAggregator implements MetricAggregator {
+public abstract class BaseProfiler implements Profiler {
   protected MetricValues values = new MetricValues();
   protected String description;
   protected String metric;

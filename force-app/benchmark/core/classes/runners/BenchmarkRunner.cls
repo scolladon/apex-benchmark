@@ -1,5 +1,5 @@
 public class BenchmarkRunner {
-  private List<MetricAggregator> metricAggregators = new List<MetricAggregator>();
+  private List<Profiler> profilers = new List<Profiler>();
   private BenchmarkJob job;
   private Decimal threashold = 0.95;
   private JobConf jobConf;
@@ -23,27 +23,27 @@ public class BenchmarkRunner {
     final BenchmarkJob job = this.benchmarkFactory.getSubject(this.jobConf.jobType);
 
     for (MetricType metric : this.jobConf.metrics) {
-      this.metricAggregators.add(this.benchmarkFactory.getAggregator(metric));
+      this.profilers.add(this.benchmarkFactory.getAggregator(metric));
     }
 
     final Integer samplingSize = this.jobConf.samplingSize ?? 50000;
     while (Limits.getCpuTime() / Limits.getLimitCpuTime() < THREASHOLD) {
-      for (MetricAggregator metricAggregator : this.metricAggregators) {
-        metricAggregator.setup();
+      for (Profiler Profiler : this.profilers) {
+        Profiler.setup();
       }
 
       for (Integer i = 0; i < samplingSize; ++i) {
         job.execute();
       }
 
-      for (MetricAggregator metricAggregator : this.metricAggregators) {
-        metricAggregator.capture();
+      for (Profiler Profiler : this.profilers) {
+        Profiler.capture();
       }
     }
 
     BenchmarkResult result = new BenchmarkResult().with(this.jobConf);
-    for (MetricAggregator metricAggregator : this.metricAggregators) {
-      result.with(new StatMetricBuilder().with(metricAggregator).build());
+    for (Profiler Profiler : this.profilers) {
+      result.with(new StatMetricBuilder().with(Profiler).build());
     }
     return result;
   }
