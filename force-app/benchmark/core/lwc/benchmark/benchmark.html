@@ -1,0 +1,42 @@
+<template>
+  <div class="slds-card-wrapper">
+    <div class="error">
+      <template lwc:if={error}>
+        <p>{error}</p>
+      </template>
+    </div>
+    <div class="slds-grid slds-gutters slds-grid_vertical-align-center">
+      <div class="slds-col slds-size_1-of-8">
+        <lightning-input type="number" variant="label-hidden" placeholder="Sample size" value={iteration} onchange={handleIterationChange} class="slds-var-m-around_x-small"></lightning-input>
+      </div>
+      <div class="slds-col slds-size_4-of-8">
+        <template for:each={jobRegistry} for:item="job">
+          <lightning-button
+            key={job.definition}
+            data-id={job.definition}
+            label={job.definition}
+            title={job.definition}
+            onclick={handleJobClick}
+            disabled={isButtonDisabled}
+            class="slds-var-m-around_x-large"
+          ></lightning-button>
+        </template>
+      </div>
+      <div class="slds-col slds-size_3-of-8">
+        <template for:each={metricRegistry} for:item="metric">
+          <lightning-input
+            type="toggle"
+            key={metric.definition}
+            data-id={metric.definition}
+            label={metric.definition}
+            onchange={handleMetricChoice}
+            class="slds-var-m-around_x-small"
+          ></lightning-input>
+        </template>
+      </div>
+    </div>
+    <div class="slds-m-top_small">
+      <lightning-datatable key-field="id" data={stats} columns={columns} hide-checkbox-column="true"> </lightning-datatable>
+    </div>
+  </div>
+</template>
