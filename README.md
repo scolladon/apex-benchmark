@@ -6,3 +6,8 @@
 </a>
 
 The purpose of this project is to provide a simple Benchmarker.
+
+Create a class implementing the `BenchmarkJob` interface to add a new treatment available to benchmark
+Create a class extending the `BaseProfiler` abstract class to add a new profiler available to benchmark
+
+Drop the `benchmark` lwc component anywhere to start benchmark treatment
