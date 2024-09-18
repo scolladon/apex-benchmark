@@ -1,7 +1,6 @@
 public class BenchmarkRunner {
   private List<Profiler> profilers = new List<Profiler>();
   private BenchmarkJob job;
-  private Decimal threashold = 0.95;
   private JobConf jobConf;
   private BenchmarkFactory benchmarkFactory;
 
@@ -27,7 +26,9 @@ public class BenchmarkRunner {
     }
 
     final Integer samplingSize = this.jobConf.samplingSize ?? 50000;
-    while (Limits.getCpuTime() / Limits.getLimitCpuTime() < THREASHOLD) {
+    Integer maxCPUConsumption = 0;
+    while (maxCPUConsumption < Limits.getLimitCpuTime() - Limits.getCpuTime()) {
+      Integer currentCPUTime = Limits.getCpuTime();
       for (Profiler Profiler : this.profilers) {
         Profiler.setup();
       }
@@ -38,6 +39,10 @@ public class BenchmarkRunner {
 
       for (Profiler Profiler : this.profilers) {
         Profiler.capture();
+      }
+      currentCPUTime = Limits.getCpuTime() - currentCPUTime;
+      if (currentCPUTime > maxCPUConsumption) {
+        maxCPUConsumption = currentCPUTime;
       }
     }
 
