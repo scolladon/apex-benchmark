@@ -14,8 +14,8 @@
           <lightning-button
             key={job.definition}
             data-id={job.definition}
-            label={job.definition}
-            title={job.definition}
+            label={job.label}
+            title={job.label}
             onclick={handleJobClick}
             disabled={isButtonDisabled}
             class="slds-var-m-around_x-large"
@@ -24,14 +24,7 @@
       </div>
       <div class="slds-col slds-size_3-of-8">
         <template for:each={metricRegistry} for:item="metric">
-          <lightning-input
-            type="toggle"
-            key={metric.definition}
-            data-id={metric.definition}
-            label={metric.definition}
-            onchange={handleMetricChoice}
-            class="slds-var-m-around_x-small"
-          ></lightning-input>
+          <lightning-input type="toggle" key={metric.definition} data-id={metric.definition} label={metric.label} onchange={handleMetricChoice} class="slds-var-m-around_x-small"></lightning-input>
         </template>
       </div>
     </div>

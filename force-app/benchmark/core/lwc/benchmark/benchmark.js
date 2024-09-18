@@ -17,6 +17,8 @@ const columns = [
   { label: "Variance", fieldName: "variance", type: "number" }
 ];
 
+const splitSnakeCase = (str) => str.split(/([A-Z][a-z]+|[A-Z]+?(?=[A-Z][a-z]+|$))/g).join(" ");
+
 export default class PerformanceCheck extends LightningElement {
   jobRegistry = [];
   metricRegistry = [];
@@ -37,7 +39,7 @@ export default class PerformanceCheck extends LightningElement {
   wiredJobRegistry({ error, data }) {
     if (data) {
       this.error = undefined;
-      this.jobRegistry = data;
+      this.jobRegistry = data.map((job) => ({ ...job, label: splitSnakeCase(job.definition) }));
     } else if (error) {
       this.jobRegistry = undefined;
       this.error = error;
@@ -48,7 +50,7 @@ export default class PerformanceCheck extends LightningElement {
   wiredMetricRegistry({ error, data }) {
     if (data) {
       this.error = undefined;
-      this.metricRegistry = data;
+      this.metricRegistry = data.map((metric) => ({ ...metric, label: splitSnakeCase(metric.definition) }));
     } else if (error) {
       this.metricRegistry = undefined;
       this.error = error;
