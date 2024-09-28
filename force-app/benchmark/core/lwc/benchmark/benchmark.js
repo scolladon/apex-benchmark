@@ -8,6 +8,7 @@ const columns = [
   { label: "Type", fieldName: "jobType" },
   { label: "Description", fieldName: "description" },
   { label: "Metric", fieldName: "metric" },
+  { label: "Iteration Count", fieldName: "iterationCount" },
   { label: "Sampling Size", fieldName: "samplingSize" },
   { label: "Min", fieldName: "min", type: "number" },
   { label: "Max", fieldName: "max", type: "number" },
@@ -95,6 +96,7 @@ export default class PerformanceCheck extends LightningElement {
         id: `${executionResult.jobConf.jobType.definition}-${Date.now()}`,
         jobType: executionResult.jobConf.jobType.definition,
         samplingSize: executionResult.jobConf.samplingSize,
+        iterationCount: executionResult.iterationCount,
         ...stat
       }))
     );
