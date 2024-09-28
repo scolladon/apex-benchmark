@@ -31,8 +31,9 @@ public class BenchmarkRunner {
     this.jobConf.samplingSize = Math.min(this.getRemainingCPUTime() / unitCpuTimeConsumptionEstimate, this.jobConf.samplingSize ?? 50000).intValue();
 
     Integer iterationCount = 0;
-    while (maxCPUConsumption < this.getRemainingCPUTime()) {
-      Integer currentCPUTimeConsumption = Limits.getCpuTime();
+    TransactionChecker checker = new TransactionChecker();
+    while (checker.canRun()) {
+      checker.prepare();
       for (Profiler Profiler : this.profilers) {
         Profiler.setup();
       }
