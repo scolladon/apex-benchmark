@@ -25,24 +25,29 @@ public class BenchmarkRunner {
       this.profilers.add(this.benchmarkFactory.getAggregator(metric));
     }
 
-    final Integer samplingSize = this.jobConf.samplingSize ?? 50000;
-    Integer maxCPUConsumption = 0;
-    while (maxCPUConsumption < Limits.getLimitCpuTime() - Limits.getCpuTime()) {
-      Integer currentCPUTime = Limits.getCpuTime();
+    Integer unitCpuTimeConsumptionEstimate = Limits.getCpuTime();
+    job.execute();
+    unitCpuTimeConsumptionEstimate = Limits.getCpuTime() - unitCpuTimeConsumptionEstimate;
+    this.jobConf.samplingSize = Math.min(this.getRemainingCPUTime() / unitCpuTimeConsumptionEstimate, this.jobConf.samplingSize ?? 50000).intValue();
+
+    Integer iterationCount = 0;
+    TransactionChecker checker = new TransactionChecker();
+    while (checker.canRun()) {
+      checker.prepare();
       for (Profiler Profiler : this.profilers) {
         Profiler.setup();
       }
 
-      for (Integer i = 0; i < samplingSize; ++i) {
+      for (Integer i = 0; i < this.jobConf.samplingSize; ++i) {
         job.execute();
       }
 
       for (Profiler Profiler : this.profilers) {
         Profiler.capture();
       }
-      currentCPUTime = Limits.getCpuTime() - currentCPUTime;
-      if (currentCPUTime > maxCPUConsumption) {
-        maxCPUConsumption = currentCPUTime;
+      currentCPUTimeConsumption = Limits.getCpuTime() - currentCPUTimeConsumption;
+      if (currentCPUTimeConsumption > maxCPUConsumption) {
+        maxCPUConsumption = currentCPUTimeConsumption;
       }
     }
 
@@ -51,5 +56,30 @@ public class BenchmarkRunner {
       result.with(new StatMetricBuilder().with(Profiler).build());
     }
     return result;
+  }
+
+
+  private class TransactionChecker {
+    private Integer maxCPUConsumption = 0;
+
+    private Integer currentCPUConsumption;
+
+    private boolean canRun() {
+      return this.maxCPUConsumption < getRemainingCPUTime();
+    }
+
+    public void prepare() {
+      this.currentCPUConsumption = Limits.getCpuTime();
+    }
+
+    public void record() {
+      this.currentCPUConsumption = Limits.getCpuTime() - this.currentCPUConsumption;
+      if (this.currentCPUConsumption > maxCPUConsumption) {
+        this.maxCPUConsumption = this.currentCPUConsumption;
+      }
+    }
+  }
+  private Decimal getRemainingCPUTime() {
+    return (Limits.getLimitCpuTime() - Limits.getCpuTime()) * 0.95;
   }
 }
