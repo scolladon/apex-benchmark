@@ -49,9 +49,10 @@ public class BenchmarkRunner {
       if (currentCPUTimeConsumption > maxCPUConsumption) {
         maxCPUConsumption = currentCPUTimeConsumption;
       }
+      ++iterationCount;
     }
 
-    BenchmarkResult result = new BenchmarkResult().with(this.jobConf);
+    BenchmarkResult result = new BenchmarkResult().with(this.jobConf).with(iterationCount);
     for (Profiler Profiler : this.profilers) {
       result.with(new StatMetricBuilder().with(Profiler).build());
     }
