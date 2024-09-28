@@ -25,24 +25,29 @@ public class BenchmarkRunner {
       this.profilers.add(this.benchmarkFactory.getAggregator(metric));
     }
 
-    final Integer samplingSize = this.jobConf.samplingSize ?? 50000;
+    Integer unitCpuTimeConsumptionEstimate = Limits.getCpuTime();
+    job.execute();
+    unitCpuTimeConsumptionEstimate = Limits.getCpuTime() - unitCpuTimeConsumptionEstimate;
+    this.jobConf.samplingSize = Math.min(this.getRemainingCPUTime() / unitCpuTimeConsumptionEstimate, this.jobConf.samplingSize ?? 50000).intValue();
+
     Integer maxCPUConsumption = 0;
-    while (maxCPUConsumption < Limits.getLimitCpuTime() - Limits.getCpuTime()) {
-      Integer currentCPUTime = Limits.getCpuTime();
+    Integer iterationCount = 0;
+    while (maxCPUConsumption < this.getRemainingCPUTime()) {
+      Integer currentCPUTimeConsumption = Limits.getCpuTime();
       for (Profiler Profiler : this.profilers) {
         Profiler.setup();
       }
 
-      for (Integer i = 0; i < samplingSize; ++i) {
+      for (Integer i = 0; i < this.jobConf.samplingSize; ++i) {
         job.execute();
       }
 
       for (Profiler Profiler : this.profilers) {
         Profiler.capture();
       }
-      currentCPUTime = Limits.getCpuTime() - currentCPUTime;
-      if (currentCPUTime > maxCPUConsumption) {
-        maxCPUConsumption = currentCPUTime;
+      currentCPUTimeConsumption = Limits.getCpuTime() - currentCPUTimeConsumption;
+      if (currentCPUTimeConsumption > maxCPUConsumption) {
+        maxCPUConsumption = currentCPUTimeConsumption;
       }
     }
 
@@ -51,5 +56,9 @@ public class BenchmarkRunner {
       result.with(new StatMetricBuilder().with(Profiler).build());
     }
     return result;
+  }
+
+  private Decimal getRemainingCPUTime() {
+    return (Limits.getLimitCpuTime() - Limits.getCpuTime()) * 0.95;
   }
 }

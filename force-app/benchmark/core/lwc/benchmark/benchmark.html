@@ -7,7 +7,16 @@
     </div>
     <div class="slds-grid slds-gutters slds-grid_vertical-align-center">
       <div class="slds-col slds-size_1-of-8">
-        <lightning-input type="number" variant="label-hidden" placeholder="Sample size" value={iteration} onchange={handleIterationChange} class="slds-var-m-around_x-small"></lightning-input>
+        <lightning-input
+          max="2147483647"
+          min="1"
+          type="number"
+          variant="label-hidden"
+          placeholder="Sample size"
+          value={iteration}
+          onchange={handleIterationChange}
+          class="slds-var-m-around_x-small"
+        ></lightning-input>
       </div>
       <div class="slds-col slds-size_4-of-8">
         <template for:each={jobRegistry} for:item="job">
