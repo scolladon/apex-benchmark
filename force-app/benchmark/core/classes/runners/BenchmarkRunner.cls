@@ -59,6 +59,27 @@ public class BenchmarkRunner {
     return result;
   }
 
+
+  private class TransactionChecker {
+    private Integer maxCPUConsumption = 0;
+
+    private Integer currentCPUConsumption;
+
+    private boolean canRun() {
+      return this.maxCPUConsumption < getRemainingCPUTime();
+    }
+
+    public void prepare() {
+      this.currentCPUConsumption = Limits.getCpuTime();
+    }
+
+    public void record() {
+      this.currentCPUConsumption = Limits.getCpuTime() - this.currentCPUConsumption;
+      if (this.currentCPUConsumption > maxCPUConsumption) {
+        this.maxCPUConsumption = this.currentCPUConsumption;
+      }
+    }
+  }
   private Decimal getRemainingCPUTime() {
     return (Limits.getLimitCpuTime() - Limits.getCpuTime()) * 0.95;
   }
