@@ -10,7 +10,7 @@ public class BenchmarkFactory {
   public List<JobType> listAvailableJobs() {
     final List<JobType> jobTypes = new List<JobType>();
 
-    for (ApexTypeImplementor implem : [SELECT ClassName FROM ApexTypeImplementor WHERE InterfaceName = :BenchmarkJob.class.getName() AND IsConcrete = TRUE]) {
+    for (ApexTypeImplementor implem : [SELECT ClassName FROM ApexTypeImplementor WHERE InterfaceName = :BenchmarkJob.class.getName() AND IsConcrete = TRUE ORDER BY ClassName]) {
       final JobType jobType = new JobType();
       jobType.definition = implem.ClassName;
       jobTypes.add(jobType);
@@ -21,7 +21,7 @@ public class BenchmarkFactory {
   public List<MetricType> listAvailableMetrics() {
     final List<MetricType> metricTypes = new List<MetricType>();
 
-    for (ApexTypeImplementor implem : [SELECT ClassName FROM ApexTypeImplementor WHERE InterfaceName = :Profiler.class.getName() AND IsConcrete = TRUE]) {
+    for (ApexTypeImplementor implem : [SELECT ClassName FROM ApexTypeImplementor WHERE InterfaceName = :Profiler.class.getName() AND IsConcrete = TRUE ORDER BY ClassName]) {
       final MetricType metricType = new MetricType();
       metricType.definition = implem.ClassName;
       metricTypes.add(metricType);
