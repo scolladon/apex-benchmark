@@ -4,6 +4,8 @@ public class BenchmarkRunner {
   private JobConf jobConf;
   private BenchmarkFactory benchmarkFactory;
 
+  private static final Integer MAX_DEFAULT_SAMPLING_SIZE = 50000;
+
   @testVisible
   private BenchmarkRunner(BenchmarkFactory benchmarkFactory) {
     this.benchmarkFactory = benchmarkFactory;
@@ -25,12 +27,8 @@ public class BenchmarkRunner {
       this.profilers.add(this.benchmarkFactory.getAggregator(metric));
     }
 
-    Integer unitCpuTimeConsumptionEstimate = Limits.getCpuTime();
-    job.execute();
-    unitCpuTimeConsumptionEstimate = Limits.getCpuTime() - unitCpuTimeConsumptionEstimate;
-    this.jobConf.samplingSize = Math.min(this.getRemainingCPUTime() / unitCpuTimeConsumptionEstimate, this.jobConf.samplingSize ?? 50000).intValue();
+    this.setSamplingSize(job);
 
-    Integer iterationCount = 0;
     TransactionChecker checker = new TransactionChecker();
     while (checker.canRun()) {
       checker.prepare();
@@ -45,17 +43,27 @@ public class BenchmarkRunner {
       for (Profiler Profiler : this.profilers) {
         Profiler.capture();
       }
-      ++iterationCount;
       checker.record();
     }
 
-    BenchmarkResult result = new BenchmarkResult().with(this.jobConf).with(iterationCount);
+    BenchmarkResult result = new BenchmarkResult().with(this.jobConf);
     for (Profiler Profiler : this.profilers) {
       result.with(new StatMetricBuilder().with(Profiler).build());
     }
     return result;
   }
 
+  private void setSamplingSize(final BenchmarkJob job) {
+    Integer unitCpuTimeConsumptionEstimate = Limits.getCpuTime();
+    job.execute();
+    unitCpuTimeConsumptionEstimate = Limits.getCpuTime() - unitCpuTimeConsumptionEstimate;
+    unitCpuTimeConsumptionEstimate = unitCpuTimeConsumptionEstimate == 0 ? 1 : unitCpuTimeConsumptionEstimate;
+    this.jobConf.samplingSize = Math.min(getRemainingCPUTime() / unitCpuTimeConsumptionEstimate, this.jobConf.samplingSize ?? MAX_DEFAULT_SAMPLING_SIZE).intValue();
+  }
+
+  private static Decimal getRemainingCPUTime() {
+    return (Limits.getLimitCpuTime() - Limits.getCpuTime()) * 0.95;
+  }
 
   private class TransactionChecker {
     private Integer maxCPUConsumption = 0;
@@ -76,8 +84,5 @@ public class BenchmarkRunner {
         this.maxCPUConsumption = this.currentCPUConsumption;
       }
     }
-  }
-  private Decimal getRemainingCPUTime() {
-    return (Limits.getLimitCpuTime() - Limits.getCpuTime()) * 0.95;
   }
 }

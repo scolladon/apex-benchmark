@@ -96,7 +96,7 @@ export default class PerformanceCheck extends LightningElement {
         id: `${executionResult.jobConf.jobType.definition}-${Date.now()}`,
         jobType: executionResult.jobConf.jobType.definition,
         samplingSize: executionResult.jobConf.samplingSize,
-        iterationCount: executionResult.iterationCount,
+        iterationCount: executionResult.stats.length,
         ...stat
       }))
     );

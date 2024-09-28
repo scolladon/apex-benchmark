@@ -5,9 +5,6 @@ public class BenchmarkResult {
   @AuraEnabled
   public JobConf jobConf { get; private set; }
 
-  @AuraEnabled
-  public Integer iterationCount { get; private set; }
-
   public BenchmarkResult() {
     this.stats = new List<StatMetrics>();
   }
@@ -19,11 +16,6 @@ public class BenchmarkResult {
 
   public BenchmarkResult with(final JobConf jobConf) {
     this.jobConf = jobConf;
-    return this;
-  }
-
-  public BenchmarkResult with(final Integer iterationCount) {
-    this.iterationCount = iterationCount;
     return this;
   }
 }
