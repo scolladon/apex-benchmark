@@ -46,6 +46,7 @@ public class BenchmarkRunner {
         Profiler.capture();
       }
       ++iterationCount;
+      checker.record();
     }
 
     BenchmarkResult result = new BenchmarkResult().with(this.jobConf).with(iterationCount);
