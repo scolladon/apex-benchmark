@@ -30,7 +30,6 @@ public class BenchmarkRunner {
     unitCpuTimeConsumptionEstimate = Limits.getCpuTime() - unitCpuTimeConsumptionEstimate;
     this.jobConf.samplingSize = Math.min(this.getRemainingCPUTime() / unitCpuTimeConsumptionEstimate, this.jobConf.samplingSize ?? 50000).intValue();
 
-    Integer maxCPUConsumption = 0;
     Integer iterationCount = 0;
     while (maxCPUConsumption < this.getRemainingCPUTime()) {
       Integer currentCPUTimeConsumption = Limits.getCpuTime();
