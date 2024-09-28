@@ -45,10 +45,6 @@ public class BenchmarkRunner {
       for (Profiler Profiler : this.profilers) {
         Profiler.capture();
       }
-      currentCPUTimeConsumption = Limits.getCpuTime() - currentCPUTimeConsumption;
-      if (currentCPUTimeConsumption > maxCPUConsumption) {
-        maxCPUConsumption = currentCPUTimeConsumption;
-      }
       ++iterationCount;
     }
 
