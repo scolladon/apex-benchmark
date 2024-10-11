@@ -5,20 +5,19 @@ import getMetricRegistry from "@salesforce/apex/Benchmarker.getMetricRegistry";
 import runBenchmark from "@salesforce/apex/Benchmarker.runBenchmark";
 
 const columns = [
-  { label: "Type", fieldName: "jobType" },
-  { label: "Description", fieldName: "description" },
-  { label: "Metric", fieldName: "metric" },
+  { label: "Job", fieldName: "jobType" },
+  { label: "Mesure", fieldName: "description" },
+  { label: "Min", fieldName: "min" },
+  { label: "Max", fieldName: "max" },
+  { label: "Mean", fieldName: "mean" },
+  { label: "Median", fieldName: "median" },
+  { label: "Deviation", fieldName: "deviation" },
+  { label: "Variance", fieldName: "variance" },
   { label: "Iteration Count", fieldName: "iterationCount" },
-  { label: "Sampling Size", fieldName: "samplingSize" },
-  { label: "Min", fieldName: "min", type: "number" },
-  { label: "Max", fieldName: "max", type: "number" },
-  { label: "Mean", fieldName: "mean", type: "number" },
-  { label: "Median", fieldName: "median", type: "number" },
-  { label: "Deviation", fieldName: "deviation", type: "number" },
-  { label: "Variance", fieldName: "variance", type: "number" }
+  { label: "Sampling Size", fieldName: "samplingSize" }
 ];
 
-const splitSnakeCase = (str) => str.split(/([A-Z][a-z]+|[A-Z]+?(?=[A-Z][a-z]+|$))/g).join(" ");
+const splitSnakeCase = (str) => str?.split(/([A-Z][a-z]+|[A-Z]+?(?=[A-Z][a-z]+|$))/g).join(" ");
 
 export default class PerformanceCheck extends LightningElement {
   jobRegistry = [];
@@ -94,10 +93,16 @@ export default class PerformanceCheck extends LightningElement {
     this.stats = this.stats.concat(
       executionResult.stats.map((stat) => ({
         id: `${executionResult.jobConf.jobType.definition}-${Date.now()}`,
-        jobType: executionResult.jobConf.jobType.definition,
+        jobType: splitSnakeCase(executionResult.jobConf.jobType.definition),
         samplingSize: executionResult.jobConf.samplingSize,
         iterationCount: executionResult.stats.length,
-        ...stat
+        ...stat,
+        max: `${stat.max} ${stat.metric}`,
+        min: `${stat.min} ${stat.metric}`,
+        median: `${stat.median} ${stat.metric}`,
+        mean: `${Number(stat.mean)?.toPrecision(6)} ${stat.metric}`,
+        deviation: `${Number(stat.deviation)?.toPrecision(6)} ${stat.metric}`,
+        variance: `${Number(stat.variance)?.toPrecision(6)} ${stat.metric}`
       }))
     );
   }
