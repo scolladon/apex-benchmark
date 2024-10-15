@@ -13,6 +13,7 @@ const columns = [
   { label: "Median", fieldName: "median" },
   { label: "Deviation", fieldName: "deviation" },
   { label: "Variance", fieldName: "variance" },
+  { label: "ops/s", fieldName: "opsecond" },
   { label: "Iteration Count", fieldName: "iterationCount" },
   { label: "Sampling Size", fieldName: "samplingSize" }
 ];
@@ -95,7 +96,8 @@ export default class PerformanceCheck extends LightningElement {
         id: `${executionResult.jobConf.jobType.definition}-${Date.now()}`,
         jobType: splitSnakeCase(executionResult.jobConf.jobType.definition),
         samplingSize: executionResult.jobConf.samplingSize,
-        iterationCount: executionResult.stats.length,
+        iterationCount: executionResult.iterationCount,
+        opsecond: executionResult.iterationCount / 10,
         ...stat,
         max: `${stat.max} ${stat.metric}`,
         min: `${stat.min} ${stat.metric}`,

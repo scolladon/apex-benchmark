@@ -30,6 +30,7 @@ public class BenchmarkRunner {
     this.setSamplingSize(job);
 
     TransactionChecker checker = new TransactionChecker();
+    Integer iterationCount = 0;
     while (checker.canRun()) {
       checker.prepare();
       for (Profiler Profiler : this.profilers) {
@@ -44,9 +45,10 @@ public class BenchmarkRunner {
         Profiler.capture();
       }
       checker.record();
+      ++iterationCount;
     }
 
-    BenchmarkResult result = new BenchmarkResult().with(this.jobConf);
+    BenchmarkResult result = new BenchmarkResult().with(this.jobConf).with(iterationCount);
     for (Profiler Profiler : this.profilers) {
       result.with(new StatMetricBuilder().with(Profiler).build());
     }
