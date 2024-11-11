@@ -20,8 +20,11 @@
       </div>
       <lightning-layout pull-to-boundary="medium" horizontal-align="left" vertical-align="center" multiple-rows="true" class="slds-col slds-size_4-of-8">
         <template for:each={jobRegistry} for:item="job">
-          <lightning-layout-item size="4" padding="horizontal-small" key={job.definition}>
+          <lightning-layout-item size="4" padding="horizontal-small" key={job.definition} class="tooltip-container">
             <lightning-button data-id={job.definition} label={job.label} title={job.label} onclick={handleJobClick} disabled={isButtonDisabled} class="slds-var-m-around_x-large"></lightning-button>
+            <div class="tooltip">
+              <pre>{job.source}</pre>
+            </div>
           </lightning-layout-item>
         </template>
       </lightning-layout>

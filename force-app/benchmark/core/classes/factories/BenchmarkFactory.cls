@@ -10,9 +10,10 @@ public class BenchmarkFactory {
   public List<JobType> listAvailableJobs() {
     final List<JobType> jobTypes = new List<JobType>();
 
-    for (ApexTypeImplementor implem : [SELECT ClassName FROM ApexTypeImplementor WHERE InterfaceName = :BenchmarkJob.class.getName() AND IsConcrete = TRUE ORDER BY ClassName]) {
+    for (ApexTypeImplementor implem : [SELECT ClassName, ApexClass.Body FROM ApexTypeImplementor WHERE InterfaceName = :BenchmarkJob.class.getName() AND IsConcrete = TRUE ORDER BY ClassName]) {
       final JobType jobType = new JobType();
       jobType.definition = implem.ClassName;
+      jobType.source = implem.ApexClass.Body;
       jobTypes.add(jobType);
     }
     return jobTypes;
