@@ -73,7 +73,7 @@ public class BenchmarkRunner {
     private Integer currentCPUConsumption;
 
     private boolean canRun() {
-      return this.maxCPUConsumption < getRemainingCPUTime();
+      return this.maxCPUConsumption < getRemainingCPUTime() && Limits.getQueries() < Limits.getLimitQueries();
     }
 
     public void prepare() {
